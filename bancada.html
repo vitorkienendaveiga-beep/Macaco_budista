@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Painel de Estoque, Expedição e Ambiente</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f2f2f2;
+        margin: 20px;
+    }
+    h2 { margin-top: 30px; }
+    .section { margin-bottom: 40px; }
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 10px;
+    }
+    .exp-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 10px;
+    }
+    .card {
+        background: white;
+        padding: 12px;
+        border-radius: 8px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        text-align: center;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .card:hover { transform: scale(1.05); }
+    .status {
+        margin-top: 4px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .trabalhando { color: #009900; }
+    .ocioso { color: #cc0000; }
+    .color-picker {
+        margin-top: 5px;
+        width: 100%;
+    }
+    /* Ambientais */
+    .ambient-box {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+    .ambient-item {
+        background: #f7f7f7;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: bold;
+    }
+.dot{width:25px;height:25px;border-radius:50%;margin:8px auto;background:#e0e0e0;cursor:pointer;}
+.dot.vermelho{background:#ff5252!important;}
+.dot.azul{background:#4d79ff!important;}
+.dot.preto{background:#000!important;}
+.dot.vazio{background:#e0e0e0!important;}
+</style>
+</head>
+<body>
+<h2>📦 Estoque – 28 posições</h2>
+<div class="section grid" id="estoque"></div>
+<h2>🚚 Expedição – 12 posições</h2>
+<div class="section exp-grid" id="expedicao"></div>
+<h2>🌡️ Dados Ambientais</h2>
+<div class="ambient-box">
+    <div class="ambient-item">🌡️ Temperatura<br><span id="temp">23°C</span></div>
+    <div class="ambient-item">💧 Umidade<br><span id="umid">45%</span></div>
+    <div class="ambient-item">🫁 Partículas<br><span id="part">180 ppm</span></div>
+    <div class="ambient-item">🌫️ Qualidade do ar<br><span id="ar">Boa</span></div>
+    <div class="ambient-item">🧭 Pressão<br><span id="press">1013 hPa</span></div>
+</div>
+<script>
+function criarEstoque() {
+    const container = document.getElementById('estoque');
+    container.innerHTML = '';
+    for (let i = 1; i <= 28; i++) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `Posição ${i}<br><div class="status ocioso">Ocioso</div>`;
+
+        const dot = document.createElement('div');
+        dot.className = 'dot vazio';
+        card.appendChild(dot);
+
+        dot.addEventListener('click', function(e){ e.stopPropagation(); mudarCor(dot); });
+        card.addEventListener('click', function(){ toggleStatus(card); });
+
+        container.appendChild(card);
+    }
+}
+
+function criarExpedicao() {
+    const container = document.getElementById('expedicao');
+    container.innerHTML = '';
+    for (let i = 1; i <= 12; i++) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `<b>Exp ${i}</b><br>Pedido: <b>Vazio</b><br><div class=\"status ocioso\">Ocioso</div>`;
+
+        const dot = document.createElement('div');
+        dot.className = 'dot vazio';
+        card.appendChild(dot);
+
+        dot.addEventListener('click', function(e){ e.stopPropagation(); mudarCor(dot); });
+        card.addEventListener('click', function(){ toggleStatus(card); });
+
+        container.appendChild(card);
+    }
+}
+
+criarEstoque();
+criarExpedicao();
+setInterval(() => {
+    document.getElementById("temp").innerText = (22 + Math.random()*3).toFixed(1) + "°C";
+    document.getElementById("umid").innerText = (40 + Math.random()*10).toFixed(0) + "%";
+}, 3000);
+function mudarCor(dot){
+    const cores=['vermelho','azul','preto','vazio'];
+    let atual=cores.findIndex(c=>dot.classList.contains(c));
+    dot.classList.remove(...cores);
+    dot.classList.add(cores[(atual+1)%cores.length]);
+}
+function toggleStatus(card){
+    const st = card.querySelector('.status');
+    if(st.classList.contains('ocioso')){
+        st.classList.remove('ocioso');
+        st.classList.add('trabalhando');
+        st.innerText='Trabalhando';
+    } else {
+        st.classList.remove('trabalhando');
+        st.classList.add('ocioso');
+        st.innerText='Ocioso';
+    }
+}
+</script>
+</body>
+</html>
