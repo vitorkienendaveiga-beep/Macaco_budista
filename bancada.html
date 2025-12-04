@@ -2,146 +2,239 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Painel de Estoque, Expedição e Ambiente</title>
+<title>Bancada Industrial</title>
+
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f2f2f2;
-        margin: 20px;
+    body { font-family: Arial; margin: 0; }
+
+    /* LOGIN FULLSCREEN */
+    #loginScreen {
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        height:100vh; gap:12px; background:#f3f3f3;
     }
-    h2 { margin-top: 30px; }
-    .section { margin-bottom: 40px; }
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 10px;
+
+    #mainContent { display:none; padding:20px; }
+
+    input, select { padding:8px; width:240px; }
+    button { padding:10px 20px; cursor:pointer; margin-top:5px; }
+
+    h3 { margin-top:40px; }
+
+    .grid { display:grid; grid-template-columns:repeat(7, 160px); gap:16px; }
+    .linha { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+
+    .statusQuadro { width:100px; padding:6px; text-align:center; border:1px solid #333; cursor:pointer; }
+    .bolinha { width:25px; height:25px; border-radius:50%; border:1px solid black; cursor:pointer; }
+
+    #ambienteBox { border:1px solid #555; padding:15px; width:300px; margin-top:20px; }
+
+    /* CADASTRO NO TOPO */
+    #cadastroTopBar {
+        background:#222; color:white; padding:10px;
+        display:flex; align-items:center; justify-content:space-between;
     }
-    .exp-grid {
-        display: grid;
-        grid-template-columns: repeat(6, 1fr);
-        gap: 10px;
+
+    #cadastroForm {
+        background:#ddd; padding:10px; display:none;
     }
-    .card {
-        background: white;
-        padding: 12px;
-        border-radius: 8px;
-        box-shadow: 0 0 5px rgba(0,0,0,0.2);
-        text-align: center;
-        cursor: pointer;
-        transition: 0.2s;
+
+    #cadastroForm input, #cadastroForm select {
+        width:200px;
     }
-    .card:hover { transform: scale(1.05); }
-    .status {
-        margin-top: 4px;
-        font-size: 12px;
-        font-weight: bold;
-    }
-    .trabalhando { color: #009900; }
-    .ocioso { color: #cc0000; }
-    .color-picker {
-        margin-top: 5px;
-        width: 100%;
-    }
-    /* Ambientais */
-    .ambient-box {
-        background: #ffffff;
-        padding: 20px;
-        border-radius: 8px;
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 10px;
-        box-shadow: 0 0 5px rgba(0,0,0,0.2);
-    }
-    .ambient-item {
-        background: #f7f7f7;
-        padding: 15px;
-        border-radius: 8px;
-        text-align: center;
-        font-weight: bold;
-    }
-.dot{width:25px;height:25px;border-radius:50%;margin:8px auto;background:#e0e0e0;cursor:pointer;}
-.dot.vermelho{background:#ff5252!important;}
-.dot.azul{background:#4d79ff!important;}
-.dot.preto{background:#000!important;}
-.dot.vazio{background:#e0e0e0!important;}
+
 </style>
 </head>
 <body>
-<h2>📦 Estoque – 28 posições</h2>
-<div class="section grid" id="estoque"></div>
-<h2>🚚 Expedição – 12 posições</h2>
-<div class="section exp-grid" id="expedicao"></div>
-<h2>🌡️ Dados Ambientais</h2>
-<div class="ambient-box">
-    <div class="ambient-item">🌡️ Temperatura<br><span id="temp">23°C</span></div>
-    <div class="ambient-item">💧 Umidade<br><span id="umid">45%</span></div>
-    <div class="ambient-item">🫁 Partículas<br><span id="part">180 ppm</span></div>
-    <div class="ambient-item">🌫️ Qualidade do ar<br><span id="ar">Boa</span></div>
-    <div class="ambient-item">🧭 Pressão<br><span id="press">1013 hPa</span></div>
+
+<!-- LOGIN OBRIGATÓRIO -->
+<div id="loginScreen">
+    <h2>Login</h2>
+
+    <input id="nome" placeholder="Nome completo">
+    <input id="loginUser" placeholder="Login">
+    <input id="senha" type="password" placeholder="Senha">
+
+    <select id="tipo">
+        <option value="aluno">Aluno</option>
+        <option value="professor">Professor</option>
+    </select>
+
+    <button onclick="fazerLogin()">Entrar</button>
+
+    <p id="loginErro" style="color:red; display:none;">Preencha tudo corretamente.</p>
 </div>
+
+<!-- BARRA DE CADASTRO NO TOPO -->
+<div id="cadastroTopBar" style="display:none;">
+    <span style="font-size:18px;">Cadastro de Usuários</span>
+    <button onclick="toggleCadastro()">Mostrar / Ocultar</button>
+</div>
+
+<!-- FORM DE CADASTRO SUPERIOR -->
+<div id="cadastroForm">
+    <h3>Novo Usuário</h3>
+
+    <input id="cadNome" placeholder="Nome completo"> <br>
+    <input id="cadLogin" placeholder="Login"> <br>
+    <input id="cadSenha" type="password" placeholder="Senha"> <br>
+
+    <select id="cadTipo">
+        <option value="aluno">Aluno</option>
+        <option value="professor">Professor</option>
+    </select>
+    <br>
+
+    <button onclick="cadastrarUsuario()">Cadastrar</button>
+
+    <p id="cadMsg" style="color:green; display:none;">Usuário cadastrado!</p>
+</div>
+
+<!-- CONTEÚDO PRINCIPAL -->
+<div id="mainContent">
+
+    <h1>Bancada Industrial</h1>
+
+    <!-- MÓDULO PROCESSO -->
+    <h3>Módulo: Processo</h3>
+    <div class="linha">
+        <div class="statusQuadro" onclick="alternarStatus(this)">Ocioso</div>
+        <div class="bolinha" onclick="trocarCor(this)"></div>
+        <span>Processo</span>
+    </div>
+
+    <!-- MÓDULO MONTAGEM -->
+    <h3>Módulo: Montagem</h3>
+    <div class="linha">
+        <div class="statusQuadro" onclick="alternarStatus(this)">Ocioso</div>
+        <div class="bolinha" onclick="trocarCor(this)"></div>
+        <span>Montagem</span>
+    </div>
+
+    <!-- ESTOQUE 28 POSIÇÕES -->
+    <h3>Estoque – 28 posições</h3>
+    <div id="estoqueGrid" class="grid"></div>
+
+    <!-- EXPEDIÇÃO 12 POSIÇÕES -->
+    <h3>Expedição – 12 posições</h3>
+    <div id="expedicaoGrid" class="grid"></div>
+
+    <!-- DADOS DO AMBIENTE -->
+    <h3>Dados do Ambiente</h3>
+    <div id="ambienteBox">
+        <p>Temperatura: <span id="temp"></span> °C</p>
+        <p>Umidade: <span id="umi"></span>%</p>
+        <p>Qualidade do ar: <span id="ar"></span></p>
+        <p>Pressão: <span id="press"></span> hPa</p>
+        <button onclick="atualizarAmbiente()">Atualizar dados</button>
+    </div>
+
+</div>
+
 <script>
-function criarEstoque() {
-    const container = document.getElementById('estoque');
-    container.innerHTML = '';
-    for (let i = 1; i <= 28; i++) {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `Posição ${i}<br><div class="status ocioso">Ocioso</div>`;
+// LOGIN COM NOME / LOGIN / SENHA
+function fazerLogin(){
+    const nome = document.getElementById('nome').value;
+    const log = document.getElementById('loginUser').value;
+    const senha = document.getElementById('senha').value;
 
-        const dot = document.createElement('div');
-        dot.className = 'dot vazio';
-        card.appendChild(dot);
-
-        dot.addEventListener('click', function(e){ e.stopPropagation(); mudarCor(dot); });
-        card.addEventListener('click', function(){ toggleStatus(card); });
-
-        container.appendChild(card);
+    if(!nome || !log || !senha){
+        document.getElementById('loginErro').style.display = 'block';
+        return;
     }
+
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    document.getElementById('cadastroTopBar').style.display = 'flex';
+
+    gerarPosicoes();
+    atualizarAmbiente();
+    iniciarAtualizacaoAutomatica();
 }
 
-function criarExpedicao() {
-    const container = document.getElementById('expedicao');
-    container.innerHTML = '';
-    for (let i = 1; i <= 12; i++) {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `<b>Exp ${i}</b><br>Pedido: <b>Vazio</b><br><div class=\"status ocioso\">Ocioso</div>`;
+// MOSTRAR / OCULTAR ÁREA DE CADASTRO NO TOPO
+function toggleCadastro(){
+    const box = document.getElementById("cadastroForm");
+    box.style.display = (box.style.display === "none") ? "block" : "none";
+}
 
-        const dot = document.createElement('div');
-        dot.className = 'dot vazio';
-        card.appendChild(dot);
+// CADASTRAR NOVO USUÁRIO
+function cadastrarUsuario(){
+    const nome = document.getElementById("cadNome").value;
+    const login = document.getElementById("cadLogin").value;
+    const senha = document.getElementById("cadSenha").value;
+    const tipo = document.getElementById("cadTipo").value;
 
-        dot.addEventListener('click', function(e){ e.stopPropagation(); mudarCor(dot); });
-        card.addEventListener('click', function(){ toggleStatus(card); });
-
-        container.appendChild(card);
+    if(!nome || !login || !senha){
+        alert("Preencha tudo corretamente!");
+        return;
     }
+
+    const usuarios = JSON.parse(localStorage.getItem("usuarios") || "[]");
+
+    usuarios.push({ nome, login, senha, tipo });
+    localStorage.setItem("usuarios", JSON.stringify(usuarios));
+
+    document.getElementById("cadMsg").style.display = "block";
+    setTimeout(()=> document.getElementById("cadMsg").style.display="none", 2000);
+
+    document.getElementById("cadNome").value = "";
+    document.getElementById("cadLogin").value = "";
+    document.getElementById("cadSenha").value = "";
 }
 
-criarEstoque();
-criarExpedicao();
-setInterval(() => {
-    document.getElementById("temp").innerText = (22 + Math.random()*3).toFixed(1) + "°C";
-    document.getElementById("umid").innerText = (40 + Math.random()*10).toFixed(0) + "%";
-}, 3000);
-function mudarCor(dot){
-    const cores=['vermelho','azul','preto','vazio'];
-    let atual=cores.findIndex(c=>dot.classList.contains(c));
-    dot.classList.remove(...cores);
-    dot.classList.add(cores[(atual+1)%cores.length]);
+// STATUS OCIOSO / TRABALHANDO
+function alternarStatus(el){
+    el.innerText = (el.innerText === 'Ocioso') ? 'Trabalhando' : 'Ocioso';
 }
-function toggleStatus(card){
-    const st = card.querySelector('.status');
-    if(st.classList.contains('ocioso')){
-        st.classList.remove('ocioso');
-        st.classList.add('trabalhando');
-        st.innerText='Trabalhando';
-    } else {
-        st.classList.remove('trabalhando');
-        st.classList.add('ocioso');
-        st.innerText='Ocioso';
-    }
+
+// CICLO DE CORES DAS BOLINHAS
+function trocarCor(el){
+    const cores = ['red', 'blue', 'black', ''];
+    const atual = el.dataset.cor || '';
+    let idx = cores.indexOf(atual);
+    idx = (idx + 1) % cores.length;
+
+    el.style.backgroundColor = cores[idx];
+    el.dataset.cor = cores[idx];
 }
+
+// CRIA AS POSIÇÕES
+function gerarPosicoes() {
+    const estoque = document.getElementById("estoqueGrid");
+    const expedicao = document.getElementById("expedicaoGrid");
+
+    for (let i = 1; i <= 28; i++) estoque.appendChild(criarLinha(`P${i}`));
+    for (let i = 1; i <= 12; i++) expedicao.appendChild(criarLinha(`E${i}`));
+}
+
+// CRIA UMA LINHA INDIVIDUAL
+function criarLinha(nome) {
+    const div = document.createElement("div");
+    div.className = "linha";
+
+    div.innerHTML = `
+        <div class="statusQuadro" onclick="alternarStatus(this)">Ocioso</div>
+        <div class="bolinha" onclick="trocarCor(this)"></div>
+        <span>${nome}</span>
+    `;
+
+    return div;
+}
+
+// DADOS DO AMBIENTE
+function atualizarAmbiente(){
+    document.getElementById('temp').innerText = (20 + Math.random()*10).toFixed(1);
+    document.getElementById('umi').innerText = (40 + Math.random()*40).toFixed(0);
+    document.getElementById('ar').innerText = ['Boa','Moderada','Ruim'][Math.floor(Math.random()*3)];
+    document.getElementById('press').innerText = (990 + Math.random()*30).toFixed(1);
+}
+
+// ATUALIZAÇÃO AUTOMÁTICA A CADA 5s
+function iniciarAtualizacaoAutomatica(){
+    setInterval(atualizarAmbiente, 5000);
+}
+
 </script>
+
 </body>
 </html>
